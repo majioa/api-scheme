@@ -1,22 +1,23 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "rails/api/scheme/version"
+require "api/scheme"
 
 Gem::Specification.new do |spec|
   spec.name          = "rails-api-scheme"
-  spec.version       = Rails::Api::Scheme::VERSION
+  spec.version       = Api::Scheme::VERSION
   spec.authors       = ["Malo Skrylevo"]
   spec.email         = ["majioa@yandex.ru"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{API Scheme for Rails Action Controller}
+  spec.description   = %q{Provides simple error handling and param processing scheme
+                          to make API and other actions for Rail Action Controller}
+  spec.homepage      = "https://github.com/majioa/rails-api-scheme"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if spec.respond_to?(:metadata)
-    spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+    spec.metadata["allowed_push_host"] = "https://rubygems.org"
   else
     raise "RubyGems 2.0 or newer is required to protect against " \
       "public gem pushes."
