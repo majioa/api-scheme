@@ -1,8 +1,7 @@
-# Rails::Api::Scheme
+# Api::Scheme
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rails/api/scheme`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Provides simple error handling and param processing scheme
+to make API and other actions for Rail Action Controller
 
 ## Installation
 
@@ -22,7 +21,42 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Do:
+
+```
+require 'api/scheme'
+```
+
+before usage. Then add the similar the following scheme
+into the rails action controller:
+
+```
+class UsersController < ApplicationController
+  include Api::Scheme
+
+  error_map %W(ActionController::ParameterMissing)  => 400,
+            %W(ActiveRecord::RecordInvalid)         => 422..0,
+            %W(ActiveRecord::RecordNotUnique)       => 422..1
+
+  param_map({
+    user: [
+      :first_name,
+      :last_name,
+      :email
+    ]
+  })
+
+  render_error_with :render_error
+
+  def create
+    @user = User.create(permitted_params)
+  end
+
+  def render_error text, minor, major
+    render json: { text: text, code: minor }, status: major
+  end
+end
+```
 
 ## Development
 
