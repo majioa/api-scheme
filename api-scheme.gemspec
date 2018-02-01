@@ -4,14 +4,15 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "api/scheme"
 
 Gem::Specification.new do |spec|
-  spec.name          = "rails-api-scheme"
+  spec.name          = "api-scheme"
   spec.version       = Api::Scheme::VERSION
   spec.authors       = ["Malo Skrylevo"]
   spec.email         = ["majioa@yandex.ru"]
 
   spec.summary       = %q{API Scheme for Rails Action Controller}
   spec.description   = %q{Provides simple error handling and param processing scheme
-                          to make API and other actions for Rail Action Controller}
+                          to make API and other actions for Rail Action Controller. This version
+                          obsoletes \`rails-api-scheme` gem}
   spec.homepage      = "https://github.com/majioa/rails-api-scheme"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'

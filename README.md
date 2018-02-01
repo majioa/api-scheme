@@ -8,7 +8,13 @@ to make API and other actions for Rail Action Controller
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rails-api-scheme'
+gem 'api-scheme'
+```
+
+or with explicit require:
+
+```ruby
+gem 'api-scheme', require: 'api/scheme'
 ```
 
 And then execute:
@@ -23,18 +29,19 @@ Or install it yourself as:
 
 Do:
 
-```
+```ruby
 require 'api/scheme'
 ```
 
 before usage. Then add the similar the following scheme
 into the rails action controller:
 
-```
+```ruby
 class UsersController < ApplicationController
   include Api::Scheme
 
   error_map %W(ActionController::ParameterMissing)  => 400,
+            %W(ActiveRecord::RecordNotFound)        => 404,
             %W(ActiveRecord::RecordInvalid)         => 422..0,
             %W(ActiveRecord::RecordNotUnique)       => 422..1
 
@@ -46,16 +53,34 @@ class UsersController < ApplicationController
     ]
   })
 
-  render_error_with :render_error
+  use_model 'User'
 
-  def create
-    @user = User.create(permitted_params)
-  end
+  use_actions :index, :show, :create, :update, :destroy
+end
+```
+
+You can also use custom success, and error handlers as follows:
+
+```ruby
+  render_error_with :render_error
+  render_success_with :render_success
 
   def render_error text, minor, major
     render json: { text: text, code: minor }, status: major
   end
-end
+
+  def render_success data, status
+    render json: data, status
+  end
+```
+
+Or even define the action method yourself instead of using the defaults, thus just skip `use_actions` call,
+and declare required methods excplicitly in the controller.
+
+```ruby
+  def create
+    @user = User.create!(permitted_params)
+  end
 ```
 
 ## Development
@@ -66,4 +91,4 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rails-api-scheme.
+Bug reports and pull requests are welcome on GitHub at https://github.com/majioa/rails-api-scheme.
