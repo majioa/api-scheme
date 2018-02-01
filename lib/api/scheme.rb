@@ -25,11 +25,15 @@ module Api::Scheme
       klass.rescue_from StandardError, with: :render_default_error
    end
 
+   def _getter var
+      self.class.ancestors.reduce(nil) { |value, klass| value || klass.instance_variable_get(var) }
+   end
+
    def error_map
-      error_map = self.class.instance_variable_get(:@error_map)
+      error_map = _getter(:@error_map)
 
       error_map ||= map
-      return error_map if self.class.instance_variable_get(:@error_map_parsed)
+      return error_map if _getter(:@error_map_parsed)
 
       error_map = parse_error_map
       self.class.instance_variable_set(:@error_map_parsed, true)
@@ -37,7 +41,7 @@ module Api::Scheme
    end
 
    def parse_error_map
-      error_map = self.class.instance_variable_get(:@error_map)
+      error_map = _getter(:@error_map)
       error_map.map do |(errors, code)|
          list = errors.map do |e|
             begin
@@ -81,9 +85,8 @@ module Api::Scheme
    def get_code_of_model_error_map e
       error_text = e.record.errors.messages.reduce(nil) {|s, (_, v)| s || v.join }
 
-      model_error_map = self.class.instance_variable_get(:@model_error_map)
-      model_error_map.to_a.reverse.reduce(nil) do |code, (re, new_code)|
-          re =~ error_text && new_code || code
+      _getter(:@model_error_map).to_a.reverse.reduce(nil) do |code, (re, new_code)|
+         re =~ error_text && new_code || code
       end
    end
 
@@ -120,22 +123,18 @@ module Api::Scheme
       else
          get_code_of_error_map(e)
       end
-   rescue => e
-   ensure
-      error_proc = self.class.instance_variable_get(:@error_proc)
 
-      case error_proc
-      when Proc, Symbol
-         prc = error_proc.is_a?(Symbol) && self.method(error_proc) || error_proc
-         args = [get_code_text(code), get_sub_code(code), get_pure_code(code) ]
-         prc[*args[0...prc.arity.abs]]
-      when Symbol
-         send(error_proc, get_pure_code(code), get_sub_code(code), get_code_text(code))
-      else
-         status, json = code_parse(code, e)
+      error_proc = _getter(:@error_proc)
 
-         render data: json, status: status
-      end
+      prc = error_proc.kind_of?(Proc) && error_proc || self.method(error_proc.to_s.to_sym)
+      args = [get_code_text(code), get_sub_code(code), get_pure_code(code) ]
+      prc[*args[0...prc.arity.abs]]
+   end
+
+   def default_error_proc
+      status, json = code_parse(code, e)
+
+      render data: json, status: status
    end
 
    def permitted_params_require key, map
@@ -152,7 +151,7 @@ module Api::Scheme
    end
 
    def permitted_params
-      param_map = self.class.instance_variable_get(:@param_map)
+      param_map = _getter(:@param_map)
 
       if param_map.is_a?(Hash)
          permitted_params_require(param_map.keys.first, param_map.values.first)
