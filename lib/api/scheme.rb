@@ -1,7 +1,12 @@
 require "api/scheme/version"
+require "api/scheme/action"
 
 module Api::Scheme
    def self.included klass
+      # NOTE put default render handlers to the module to use from as if is the ancestor
+      self.instance_variable_set(:@success_proc, :default_success_proc)
+      self.instance_variable_set(:@error_proc, :default_error_proc)
+
       klass.class_eval %Q"
          class << self
             def error_map map
@@ -16,8 +21,31 @@ module Api::Scheme
                @param_map ||= map
             end
 
+            def render_success_with method = nil, &prc
+               @success_proc ||= method || prc
+            end
+
             def render_error_with method = nil, &prc
                @error_proc ||= method || prc
+            end
+
+            def use_model name
+               @model_name = name
+            end
+
+            def use_actions *list
+               list.each do |action|
+                  Api::Scheme::Action.define_for(self, action)
+               end
+
+               Api::Scheme::Action::SCHEME.each do |method_name, cases|
+                  before = [ cases[:before] ].flatten.compact & list
+
+                  if before.present?
+                     Api::Scheme::Action.define_for(self, method_name)
+                     self.before_action(method_name, only: before)
+                  end
+               end
             end
          end
       "
@@ -116,6 +144,14 @@ module Api::Scheme
       I18n.t("action_controller.#{controller_path}.errors.#{path}")
    end
 
+   def render_default_success data, options = {}
+      success_proc = _getter(:@success_proc)
+
+      prc = success_proc.kind_of?(Proc) && success_proc || self.method(success_proc.to_s.to_sym)
+
+      prc[data, options]
+   end
+
    def render_default_error e
       code =
       if e.to_s.split('::').last == 'Validations'
@@ -127,14 +163,47 @@ module Api::Scheme
       error_proc = _getter(:@error_proc)
 
       prc = error_proc.kind_of?(Proc) && error_proc || self.method(error_proc.to_s.to_sym)
-      args = [get_code_text(code), get_sub_code(code), get_pure_code(code) ]
+      args = [get_code_text(code), get_sub_code(code), get_pure_code(code), code, e ]
+
       prc[*args[0...prc.arity.abs]]
    end
 
-   def default_error_proc
+   def default_success_proc data
+      render data: data, status: 200
+   end
+
+   def default_error_proc _, _, _, code, e
       status, json = code_parse(code, e)
 
       render data: json, status: status
+   end
+
+   def model
+      @model ||= _getter(:@model_name).constantize
+   end
+
+   def model_key
+      model.name.tableize.singularize
+   end
+
+   def models_key
+      model.name.tableize
+   end
+
+   def model_instance
+      self.instance_variable_get(:"@#{model_key}")
+   end
+
+   def model_instances
+      self.instance_variable_get(:"@#{models_key}")
+   end
+
+   def model_instance= value
+      self.instance_variable_set(:"@#{model_key}", value)
+   end
+
+   def model_instances= value
+      self.instance_variable_set(:"@#{models_key}", value)
    end
 
    def permitted_params_require key, map
