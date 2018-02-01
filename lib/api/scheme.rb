@@ -94,23 +94,23 @@ module Api::Scheme
    end
 
    def get_pure_code code
-       if code.is_a?(Range)
-            code.begin
-       else
-            code
-       end
+      if code.is_a?(Range)
+         code.begin
+      else
+         code
+      end
    end
 
    def get_sub_code code
-       if code.is_a?(Range)
-            code.end
-       end
+      if code.is_a?(Range)
+         code.end
+      end
    end
 
    def get_code_text code
-       path = code.is_a?(Range) && "#{code.begin}.#{code.end}" || code.to_s
+      path = code.is_a?(Range) && "#{code.begin}.#{code.end}" || code.to_s
 
-       I18n.t("action_controller.#{controller_path}.errors.#{path}")
+      I18n.t("action_controller.#{controller_path}.errors.#{path}")
    end
 
    def render_default_error e
