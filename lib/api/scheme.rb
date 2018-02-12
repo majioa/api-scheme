@@ -29,6 +29,10 @@ module Api::Scheme
                @error_proc ||= method || prc
             end
 
+            def render_error_code options = {}
+               @error_proces = (@error_proces || {}).merge(options)
+            end
+
             def use_model name
                @model_name = name
             end
@@ -160,7 +164,8 @@ module Api::Scheme
          get_code_of_error_map(e)
       end
 
-      error_proc = _getter(:@error_proc)
+      error_proces = _getter(:@error_proces)
+      error_proc = error_proces[code] || error_proc = _getter(:@error_proc)
 
       prc = error_proc.kind_of?(Proc) && error_proc || self.method(error_proc.to_s.to_sym)
       args = [get_code_text(code), get_sub_code(code), get_pure_code(code), code, e ]

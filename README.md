@@ -62,8 +62,12 @@ end
 You can also use custom success, and error handlers as follows:
 
 ```ruby
+  error_map %W(ActionController::ParameterMissing)  => 400,
+            %W(ActiveRecord::RecordInvalid)         => 422..0
+
   render_error_with :render_error
   render_success_with :render_success
+  render_error_code 422..0 => :render_error
 
   def render_error text, minor, major
     render json: { text: text, code: minor }, status: major
@@ -72,7 +76,13 @@ You can also use custom success, and error handlers as follows:
   def render_success data, status
     render json: data, status
   end
+
+  def render_invalid text, minor, major
+    render json: { text: text, code: minor, additional: 'invalid' }, status: major
+  end
+
 ```
+Note, that you are able specify a method to proceed an error separately for a specific error code.
 
 Or even define the action method yourself instead of using the defaults, thus just skip `use_actions` call,
 and declare required methods excplicitly in the controller.
