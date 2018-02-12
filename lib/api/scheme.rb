@@ -5,7 +5,7 @@ module Api::Scheme
    def self.included klass
       # NOTE put default render handlers to the module to use from as if is the ancestor
       self.instance_variable_set(:@success_proc, :default_success_proc)
-      self.instance_variable_set(:@error_proc, :default_error_proc)
+      self.instance_variable_set(:@error_proces, { nil => :default_error_proc })
 
       klass.class_eval %Q"
          class << self
@@ -26,11 +26,11 @@ module Api::Scheme
             end
 
             def render_error_with method = nil, &prc
-               @error_proc ||= method || prc
+               render_error_code nil => (method || prc)
             end
 
             def render_error_code options = {}
-               @error_proces = (@error_proces || {}).merge(options)
+               @error_proces = _getter(:@error_proces).merge(options)
             end
 
             def use_model name
@@ -51,6 +51,10 @@ module Api::Scheme
                   end
                end
             end
+
+            def _getter var
+               self.ancestors.reduce(nil) { |value, klass| value || klass.instance_variable_get(var) }
+            end
          end
       "
 
@@ -58,7 +62,7 @@ module Api::Scheme
    end
 
    def _getter var
-      self.class.ancestors.reduce(nil) { |value, klass| value || klass.instance_variable_get(var) }
+      self.class._getter(var)
    end
 
    def error_map
@@ -165,7 +169,7 @@ module Api::Scheme
       end
 
       error_proces = _getter(:@error_proces)
-      error_proc = error_proces[code] || error_proc = _getter(:@error_proc)
+      error_proc = error_proces[code] || error_proces[nil]
 
       prc = error_proc.kind_of?(Proc) && error_proc || self.method(error_proc.to_s.to_sym)
       args = [get_code_text(code), get_sub_code(code), get_pure_code(code), code, e ]
