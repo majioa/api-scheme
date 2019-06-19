@@ -1,5 +1,5 @@
 require "bundler/setup"
-require "rails/api/scheme"
+require "api/scheme"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
