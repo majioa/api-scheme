@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Provides simple error handling and param processing scheme
                           to make API and other actions for Rail Action Controller. This version
                           obsoletes \`rails-api-scheme` gem}
-  spec.homepage      = "https://github.com/majioa/rails-api-scheme"
+  spec.homepage      = "https://github.com/majioa/api-scheme"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "bundler", "~> 1.15"
-  spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_development_dependency "bundler", "~> 2.0"
+  spec.add_development_dependency "rake", "~> 12.0", '>= 12.3.3'
   spec.add_development_dependency "rspec", "~> 3.0"
 end
